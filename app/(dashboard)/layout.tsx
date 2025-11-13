@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import Sidebar from '@/components/navigation/Sidebar';
+import TopBar from '@/components/navigation/TopBar';
 
 export default async function DashboardLayout({
   children,
@@ -16,15 +18,34 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
+  // Fetch user profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  // Fetch user's brands
+  const { data: brands } = await supabase
+    .from('brands')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const currentBrand = brands?.[0];
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <h1 className="text-xl font-bold">RankMeUpon.ai</h1>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
-        </div>
-      </header>
-      <main className="flex-1">{children}</main>
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <div className="flex-1 pl-16">
+        <TopBar
+          userName={profile?.full_name || user.email?.split('@')[0] || 'User'}
+          userEmail={user.email}
+          currentBrand={currentBrand}
+          brands={brands || []}
+        />
+        <main className="pt-16">{children}</main>
+      </div>
     </div>
   );
 }
