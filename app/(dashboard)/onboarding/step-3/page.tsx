@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface TopicCluster {
   id: string;
@@ -76,6 +77,7 @@ export default function OnboardingStep3() {
   const router = useRouter();
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
   const [topics, setTopics] = useState<TopicCluster[]>(mockTopicClusters);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const saved = sessionStorage.getItem('onboarding');
@@ -107,21 +109,52 @@ export default function OnboardingStep3() {
 
   const handleComplete = async () => {
     const saved = sessionStorage.getItem('onboarding');
-    if (!saved) return;
+    if (!saved) {
+      toast.error('Onboarding data not found. Please start from step 1.');
+      router.push('/onboarding/step-1');
+      return;
+    }
 
-    const data = JSON.parse(saved);
-    const selectedTopicData = topics.filter(t => selectedTopics.has(t.id));
+    setIsSubmitting(true);
 
-    const finalData = {
-      ...data,
-      topics: selectedTopicData,
-      totalPrompts: selectedTopicData.reduce((acc, t) => acc + t.prompts.length, 0)
-    };
+    try {
+      const data = JSON.parse(saved);
+      const selectedTopicData = topics.filter(t => selectedTopics.has(t.id));
 
-    sessionStorage.setItem('onboarding', JSON.stringify(finalData));
+      const payload = {
+        brandName: data.brandName,
+        websiteUrl: data.websiteUrl,
+        variations: data.variations || [],
+        locationType: data.locationType,
+        location: data.location,
+        topics: selectedTopicData,
+      };
 
-    // TODO: Save to Supabase and redirect to dashboard
-    router.push('/dashboard');
+      const response = await fetch('/api/onboarding/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to complete onboarding');
+      }
+
+      // Clear sessionStorage after successful save
+      sessionStorage.removeItem('onboarding');
+
+      toast.success('Brand created successfully!');
+      router.push('/dashboard');
+      router.refresh();
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to complete onboarding');
+      setIsSubmitting(false);
+    }
   };
 
   const handleSkip = () => {
@@ -207,7 +240,7 @@ export default function OnboardingStep3() {
               variant="ghost"
               onClick={handleBack}
             >
-              ê Back
+              ÔøΩ Back
             </Button>
             <div className="text-sm text-muted-foreground">
               Step 3 / 3
@@ -223,8 +256,16 @@ export default function OnboardingStep3() {
             <Button
               onClick={handleComplete}
               size="lg"
+              disabled={isSubmitting}
             >
-              Complete
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Complete'
+              )}
             </Button>
           </div>
         </div>
