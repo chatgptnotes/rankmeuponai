@@ -43,13 +43,13 @@ export default function OnboardingStep1() {
       <div className="w-full max-w-2xl">
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-4xl font-bold">
-            Hey there! <span className="inline-block">=K</span>
+            Hey there!
           </h1>
           <p className="text-lg text-muted-foreground">
             Let&apos;s optimize your brand for AI
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Just a few quick details to get started. (
+            Just a few quick details to get started.
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export default function OnboardingStep1() {
               disabled={!brandName || !websiteUrl}
               size="lg"
             >
-              Continue ’
+              Continue
             </Button>
           </div>
         </Card>
