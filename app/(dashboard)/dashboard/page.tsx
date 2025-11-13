@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Plus, TrendingUp, Target, BarChart3, ArrowRight } from 'lucide-react';
-import type { Brand } from '@/types';
+import type { Brand, Profile } from '@/types';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -18,7 +18,7 @@ export default async function DashboardPage() {
     .from('profiles')
     .select('*')
     .eq('id', user?.id || '')
-    .single();
+    .single() as { data: Profile | null };
 
   // Fetch user's brands
   const { data: brands } = await supabase

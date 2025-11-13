@@ -267,7 +267,7 @@ export default function OverviewPage() {
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>{prompt.mentions} mentions</span>
-                    <span>"</span>
+                    <span>•</span>
                     <span>{prompt.visibility}% visibility</span>
                   </div>
                 </div>

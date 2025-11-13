@@ -199,14 +199,14 @@ export default function OnboardingStep3() {
                 <div className="mb-4">
                   <h3 className="mb-2 text-lg font-semibold">{topic.name}</h3>
                   <Badge variant="secondary" className="text-xs">
-                    Topic Cluster " {topic.prompts.length} prompts
+                    Topic Cluster • {topic.prompts.length} prompts
                   </Badge>
                 </div>
 
                 <ul className="mb-4 space-y-2">
                   {topic.prompts.map((prompt, idx) => (
                     <li key={idx} className="text-sm text-muted-foreground">
-                      " {prompt}
+                      • {prompt}
                     </li>
                   ))}
                 </ul>
@@ -227,7 +227,7 @@ export default function OnboardingStep3() {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
                 Topics: <span className="font-semibold text-foreground">{selectedTopicCount}</span>
-                {' " '}
+                {' • '}
                 Prompts: <span className="font-semibold text-foreground">{selectedPromptCount}</span>
               </span>
             </div>

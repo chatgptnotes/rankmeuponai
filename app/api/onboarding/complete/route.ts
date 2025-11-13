@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import type { BrandInsert, PromptInsert } from '@/types';
 
 // Interface for onboarding data
 interface OnboardingData {
@@ -103,15 +104,18 @@ export async function POST(request: Request) {
     const industry = detectIndustry(brandName, websiteUrl);
 
     // Create brand
+    const brandData: BrandInsert = {
+      user_id: user.id,
+      name: brandName,
+      website_url: websiteUrl,
+      entity_type: entityType,
+      industry: industry,
+    };
+
+    // @ts-expect-error - Supabase type inference issue
     const { data: brand, error: brandError } = await supabase
       .from('brands')
-      .insert({
-        user_id: user.id,
-        name: brandName,
-        website_url: websiteUrl,
-        entity_type: entityType,
-        industry: industry,
-      })
+      .insert(brandData)
       .select()
       .single();
 
@@ -125,7 +129,7 @@ export async function POST(request: Request) {
 
     // Create prompts from selected topics
     if (topics && topics.length > 0) {
-      const promptsToInsert = topics.flatMap(topic =>
+      const promptsToInsert: PromptInsert[] = topics.flatMap(topic =>
         topic.prompts.map(promptText => ({
           brand_id: brand.id,
           prompt_text: promptText,
@@ -134,6 +138,7 @@ export async function POST(request: Request) {
         }))
       );
 
+      // @ts-expect-error - Supabase type inference issue
       const { error: promptsError } = await supabase
         .from('prompts')
         .insert(promptsToInsert);

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Sidebar from '@/components/navigation/Sidebar';
 import TopBar from '@/components/navigation/TopBar';
+import type { Profile } from '@/types';
 
 export default async function DashboardLayout({
   children,
@@ -23,7 +24,7 @@ export default async function DashboardLayout({
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single();
+    .single() as { data: Profile | null };
 
   // Fetch user's brands
   const { data: brands } = await supabase
