@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import type { Brand, BrandInsert, PromptInsert } from '@/types';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 // Interface for onboarding data
 interface OnboardingData {
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
 
     // Parse request body
     const body: OnboardingData = await request.json();
-    const { brandName, websiteUrl, variations, locationType, location, topics } = body;
+    const { brandName, websiteUrl, topics } = body;
 
     // Validate required fields
     if (!brandName || !websiteUrl) {
@@ -112,11 +113,11 @@ export async function POST(request: Request) {
       industry: industry,
     };
 
-    const { data: brand, error: brandError } = (await supabase
+    const { data: brand, error: brandError } = await supabase
       .from('brands')
-      .insert(brandData as any)
+      .insert(brandData as never)
       .select()
-      .single()) as { data: Brand | null; error: any };
+      .single() as { data: Brand | null; error: PostgrestError | null };
 
     if (brandError || !brand) {
       console.error('Brand creation error:', brandError);
@@ -139,7 +140,7 @@ export async function POST(request: Request) {
 
       const { error: promptsError } = await supabase
         .from('prompts')
-        .insert(promptsToInsert as any);
+        .insert(promptsToInsert as never) as { error: PostgrestError | null };
 
       if (promptsError) {
         console.error('Prompts creation error:', promptsError);

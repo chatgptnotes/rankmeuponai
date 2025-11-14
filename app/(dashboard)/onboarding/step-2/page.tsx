@@ -5,124 +5,153 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MapPin, Globe } from 'lucide-react';
+import { MapPin, Globe, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { OnboardingLayout } from '@/components/onboarding/OnboardingLayout';
+import { useOnboardingStore } from '@/stores/onboardingStore';
+import { validateLocationData } from '@/lib/onboarding/validation';
+import { toast } from 'sonner';
 
 export default function OnboardingStep2() {
   const router = useRouter();
-  const [locationType, setLocationType] = useState<'location' | 'global'>('location');
-  const [location, setLocation] = useState('');
+  const { data, setLocationData, canProceedToStep2, canProceedToStep3, setCurrentStep } = useOnboardingStore();
+
+  const [locationType, setLocationType] = useState<'location' | 'global'>(data.locationType || 'location');
+  const [location, setLocation] = useState(data.location || '');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const saved = sessionStorage.getItem('onboarding');
-    if (!saved) {
+    setCurrentStep(2);
+
+    // Check if step 1 was completed
+    if (!canProceedToStep2()) {
+      toast.error('Please complete step 1 first');
       router.push('/onboarding/step-1');
     }
-  }, [router]);
+  }, [canProceedToStep2, router, setCurrentStep]);
 
   const handleBack = () => {
     router.push('/onboarding/step-1');
   };
 
-  const handleComplete = async () => {
-    const saved = sessionStorage.getItem('onboarding');
-    if (!saved) return;
-
-    const data = JSON.parse(saved);
-    const finalData = {
-      ...data,
+  const handleContinue = () => {
+    // Validate data
+    const validation = validateLocationData({
       locationType,
-      location: locationType === 'location' ? location : 'global'
-    };
+      location: locationType === 'location' ? location : 'global',
+    });
 
-    sessionStorage.setItem('onboarding', JSON.stringify(finalData));
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      toast.error('Please fix the errors before continuing');
+      return;
+    }
+
+    setErrors({});
+
+    // Save to store
+    setLocationData({
+      locationType,
+      location: locationType === 'location' ? location.trim() : 'global',
+    });
+
     router.push('/onboarding/step-3');
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-4xl font-bold">
-            Where does your brand operate? <span className="inline-block">🌍</span>
-          </h1>
-          <p className="text-muted-foreground">
-            Please select if your brand is global or location specific
-          </p>
+    <OnboardingLayout
+      currentStep={2}
+      title={
+        <>
+          Where does your brand operate? <span className="inline-block">🌍</span>
+        </>
+      }
+      subtitle="Please select if your brand is global or location specific"
+    >
+      <Card className="p-8">
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <button
+              onClick={() => setLocationType('location')}
+              className={cn(
+                'flex flex-col items-center gap-4 rounded-lg border-2 p-6 transition-all hover:border-primary',
+                locationType === 'location'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border'
+              )}
+            >
+              <MapPin className="h-12 w-12 text-red-500" />
+              <div className="text-center">
+                <div className="font-semibold">Location Specific</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Target a specific city or region
+                </p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setLocationType('global');
+                setLocation('global');
+              }}
+              className={cn(
+                'flex flex-col items-center gap-4 rounded-lg border-2 p-6 transition-all hover:border-primary',
+                locationType === 'global'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border'
+              )}
+            >
+              <Globe className="h-12 w-12 text-blue-500" />
+              <div className="text-center">
+                <div className="font-semibold">Global</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Serve customers worldwide
+                </p>
+              </div>
+            </button>
+          </div>
+
+          {locationType === 'location' && (
+            <div className="space-y-2 animate-in fade-in">
+              <label htmlFor="location" className="text-sm font-medium">
+                Location <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="location"
+                placeholder="e.g., Nagpur, India"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="text-base"
+              />
+              {errors.location && (
+                <p className="text-sm text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.location}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Enter the primary city or region where your brand operates
+              </p>
+            </div>
+          )}
         </div>
 
-        <Card className="p-8">
-          <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <button
-                onClick={() => setLocationType('location')}
-                className={cn(
-                  'flex flex-col items-center gap-4 rounded-lg border-2 p-6 transition-all hover:border-primary',
-                  locationType === 'location'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border'
-                )}
-              >
-                <MapPin className="h-12 w-12 text-red-500" />
-                <div className="text-center">
-                  <div className="font-semibold">Location Specific</div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setLocationType('global')}
-                className={cn(
-                  'flex flex-col items-center gap-4 rounded-lg border-2 p-6 transition-all hover:border-primary',
-                  locationType === 'global'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border'
-                )}
-              >
-                <Globe className="h-12 w-12 text-blue-500" />
-                <div className="text-center">
-                  <div className="font-semibold">Global</div>
-                </div>
-              </button>
-            </div>
-
-            {locationType === 'location' && (
-              <div className="space-y-2 animate-in fade-in">
-                <label htmlFor="location" className="text-sm font-medium">
-                  Location
-                </label>
-                <Input
-                  id="location"
-                  placeholder="nagpur"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="text-base"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-              >
-                ← Back
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                Step 2 / 2
-              </div>
-            </div>
-            <Button
-              onClick={handleComplete}
-              disabled={locationType === 'location' && !location}
-              size="lg"
-            >
-              Complete
+        <div className="mt-8 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={handleBack}>
+              ← Back
             </Button>
+            <div className="text-sm text-muted-foreground">Step 2 / 3</div>
           </div>
-        </Card>
-      </div>
-    </div>
+          <Button
+            onClick={handleContinue}
+            disabled={locationType === 'location' && !location.trim()}
+            size="lg"
+          >
+            Continue
+          </Button>
+        </div>
+      </Card>
+    </OnboardingLayout>
   );
 }

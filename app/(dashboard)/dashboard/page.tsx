@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { Plus, TrendingUp, Target, BarChart3, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { Plus, Target, ArrowRight } from 'lucide-react';
 import type { Brand, Profile } from '@/types';
 
 export default async function DashboardPage() {
@@ -83,9 +83,11 @@ export default async function DashboardPage() {
             <CardHeader className="pb-4">
               <div className="flex items-start gap-4">
                 {brand.logo_url ? (
-                  <img
+                  <Image
                     src={brand.logo_url}
                     alt={brand.name}
+                    width={48}
+                    height={48}
                     className="h-12 w-12 rounded-lg object-cover"
                   />
                 ) : (

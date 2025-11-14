@@ -5,37 +5,28 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const supabase = createClient();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const result = await login(email, password);
 
-      if (error) throw error;
-
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to log in');
-    } finally {
-      setLoading(false);
+    if (!result.success && result.error) {
+      setError(result.error instanceof Error ? result.error.message : 'Failed to log in');
     }
+
+    setLoading(false);
   };
 
   return (
@@ -46,6 +37,21 @@ export default function LoginPage() {
           Enter your credentials to access your account
         </CardDescription>
       </CardHeader>
+      <CardContent className="space-y-4">
+        <SocialAuthButtons redirectTo="/dashboard" />
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with email
+            </span>
+          </div>
+        </div>
+      </CardContent>
+
       <form onSubmit={handleLogin}>
         <CardContent className="space-y-4">
           {error && (

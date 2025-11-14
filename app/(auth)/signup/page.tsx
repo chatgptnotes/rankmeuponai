@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { createClient } from '@/lib/supabase/client';
+import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -14,33 +15,22 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const supabase = createClient();
+  const { signup } = useAuth();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+    const result = await signup(email, password, fullName);
 
-      if (error) throw error;
-
+    if (result.success) {
       setSuccess(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
-    } finally {
-      setLoading(false);
+    } else if (result.error) {
+      setError(result.error instanceof Error ? result.error.message : 'Failed to create account');
     }
+
+    setLoading(false);
   };
 
   if (success) {
@@ -74,6 +64,21 @@ export default function SignupPage() {
           Get started with RankMeUpon.ai for free
         </CardDescription>
       </CardHeader>
+      <CardContent className="space-y-4">
+        <SocialAuthButtons redirectTo="/onboarding" />
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with email
+            </span>
+          </div>
+        </div>
+      </CardContent>
+
       <form onSubmit={handleSignup}>
         <CardContent className="space-y-4">
           {error && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ChevronDown, Calendar, LogOut, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,7 +41,7 @@ interface TopBarProps {
 export default function TopBar({ userName, userEmail, currentBrand, brands = [] }: TopBarProps) {
   const router = useRouter();
   const supabase = createClient();
-  const [selectedDate, setSelectedDate] = useState('Nov 14, 2025');
+  const [selectedDate] = useState('Nov 14, 2025');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -64,7 +65,7 @@ export default function TopBar({ userName, userEmail, currentBrand, brands = [] 
               <SelectTrigger className="w-[200px] border-none bg-transparent">
                 <div className="flex items-center gap-2">
                   {currentBrand.logo_url ? (
-                    <img src={currentBrand.logo_url} alt="" className="h-6 w-6 rounded" />
+                    <Image src={currentBrand.logo_url} alt="" width={24} height={24} className="h-6 w-6 rounded" />
                   ) : (
                     <div className="h-6 w-6 rounded bg-primary/20" />
                   )}
@@ -76,7 +77,7 @@ export default function TopBar({ userName, userEmail, currentBrand, brands = [] 
                   <SelectItem key={brand.id} value={brand.id}>
                     <div className="flex items-center gap-2">
                       {brand.logo_url ? (
-                        <img src={brand.logo_url} alt="" className="h-5 w-5 rounded" />
+                        <Image src={brand.logo_url} alt="" width={20} height={20} className="h-5 w-5 rounded" />
                       ) : (
                         <div className="h-5 w-5 rounded bg-primary/20" />
                       )}

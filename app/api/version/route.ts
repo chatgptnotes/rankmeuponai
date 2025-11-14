@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const versionInfo = getVersion();
     return NextResponse.json(versionInfo);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         version: '1.0',

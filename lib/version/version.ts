@@ -19,7 +19,7 @@ export function getVersion(): VersionInfo {
       lastUpdated: new Date().toISOString(),
       repository: 'rankmeuponai.com',
     };
-  } catch (error) {
+  } catch {
     return {
       version: '1.0',
       lastUpdated: new Date().toISOString(),
