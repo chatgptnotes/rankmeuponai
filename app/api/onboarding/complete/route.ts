@@ -112,7 +112,6 @@ export async function POST(request: Request) {
       industry: industry,
     };
 
-    // @ts-expect-error - Supabase type inference issue
     const { data: brand, error: brandError } = await supabase
       .from('brands')
       .insert(brandData)
