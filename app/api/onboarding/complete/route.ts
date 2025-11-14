@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import type { BrandInsert, PromptInsert } from '@/types';
+import type { Brand, BrandInsert, PromptInsert } from '@/types';
 
 // Interface for onboarding data
 interface OnboardingData {
@@ -112,11 +112,11 @@ export async function POST(request: Request) {
       industry: industry,
     };
 
-    const { data: brand, error: brandError } = await supabase
+    const { data: brand, error: brandError } = (await supabase
       .from('brands')
       .insert(brandData as any)
       .select()
-      .single();
+      .single()) as { data: Brand | null; error: any };
 
     if (brandError || !brand) {
       console.error('Brand creation error:', brandError);
