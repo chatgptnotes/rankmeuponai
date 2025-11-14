@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
     const { data: brand, error: brandError } = await supabase
       .from('brands')
-      .insert(brandData)
+      .insert(brandData as any)
       .select()
       .single();
 
@@ -137,10 +137,9 @@ export async function POST(request: Request) {
         }))
       );
 
-      // @ts-expect-error - Supabase type inference issue
       const { error: promptsError } = await supabase
         .from('prompts')
-        .insert(promptsToInsert);
+        .insert(promptsToInsert as any);
 
       if (promptsError) {
         console.error('Prompts creation error:', promptsError);
